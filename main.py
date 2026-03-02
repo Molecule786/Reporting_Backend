@@ -128,10 +128,18 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Molecule WorkFlow Pro API", lifespan=lifespan)
 
-# CORS middleware
+# CORS middleware - Allow your production domain
+origins = [
+    "https://reporting.webconferencesolutions.com",
+    "http://localhost:3000",
+    "http://localhost:8080",
+    "http://127.0.0.1:8001",
+    "*"  # Allow all for development - remove in production
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
