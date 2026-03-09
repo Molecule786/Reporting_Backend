@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     print("[INFO] Shutting down application")
 
-app = FastAPI(title="Molecule WorkFlow Pro API", lifespan=lifespan)
+app = FastAPI(title="Molecule WorkFlow Pro API", lifespan=lifespan, redirect_slashes=False)
 
 # CORS middleware - Allow your production domain
 origins = [
