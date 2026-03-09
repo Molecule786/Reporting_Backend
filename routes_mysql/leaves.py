@@ -80,6 +80,37 @@ def get_leaves(db: Session = Depends(get_db), current_user: dict = Depends(get_c
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/leaves/my")
+def get_my_leaves(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    try:
+        user_id = int(current_user.get("user_id"))
+        
+        leaves = db.query(Leave).filter(Leave.user_id == user_id).order_by(desc(Leave.created_at)).all()
+        
+        leaves_list = []
+        for leave in leaves:
+            leaves_list.append({
+                "_id": str(leave.id),
+                "user_id": str(leave.user_id),
+                "user_name": leave.user_name,
+                "user_email": leave.user_email,
+                "leave_type": leave.leave_type,
+                "half_day_type": leave.half_day_type,
+                "reason": leave.reason,
+                "start_date": leave.start_date.isoformat() if leave.start_date else None,
+                "end_date": leave.end_date.isoformat() if leave.end_date else None,
+                "status": leave.status.value if hasattr leave.status, 'value') else leave.status,
+                "admin_comment": leave.admin_comment,
+                "created_at": leave.created_at.isoformat() if leave.created_at else None
+            })
+        
+        return {
+            "success": True,
+            "data": {"leaves": leaves_list}
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.put("/leaves/{leave_id}")
 def update_leave(leave_id: int, leave_update: LeaveUpdate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
