@@ -11,6 +11,7 @@ import json
 router = APIRouter()
 
 @router.post("/")
+@router.post("")
 def create_report(report: ReportCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         user_id = int(current_user.get("user_id"))
@@ -58,6 +59,7 @@ def create_report(report: ReportCreate, db: Session = Depends(get_db), current_u
         )
 
 @router.get("/")
+@router.get("")
 def get_reports(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         user_id = int(current_user.get("user_id"))

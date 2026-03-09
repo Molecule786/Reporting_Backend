@@ -9,6 +9,7 @@ from utils.auth import get_current_user
 router = APIRouter()
 
 @router.post("/")
+@router.post("")
 def create_task(task: TaskCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         # Only admins can create tasks
@@ -49,6 +50,7 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db), current_user: d
         )
 
 @router.get("/")
+@router.get("")
 def get_tasks(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         user_id = int(current_user.get("user_id"))
