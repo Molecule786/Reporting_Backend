@@ -6,20 +6,45 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# MySQL Database URL
-MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")
-MYSQL_PORT = os.getenv("MYSQL_PORT", "3306")
-MYSQL_USER = os.getenv("MYSQL_USER", "root")
-MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "")
-MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "reporting_db")
-
-DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
-
-engine = create_engine(DATABASE_URL, echo=True)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+# Global variables for lazy initialization
+_engine = None
+_SessionLocal = None
+
+def get_engine():
+    """Lazy initialization of database engine"""
+    global _engine
+    if _engine is None:
+        # MySQL Database URL
+        MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")
+        MYSQL_PORT = os.getenv("MYSQL_PORT", "3306")
+        MYSQL_USER = os.getenv("MYSQL_USER", "root")
+        MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "")
+        MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "reporting_db")
+        
+        DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
+        _engine = create_engine(DATABASE_URL, echo=True)
+    return _engine
+
+def get_session_local():
+    """Lazy initialization of session maker"""
+    global _SessionLocal
+    if _SessionLocal is None:
+        _SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=get_engine())
+    return _SessionLocal
+
+# For backward compatibility
+@property
+def engine():
+    return get_engine()
+
+@property
+def SessionLocal():
+    return get_session_local()
+
 def get_db():
+    SessionLocal = get_session_local()
     db = SessionLocal()
     try:
         yield db
@@ -28,4 +53,4 @@ def get_db():
 
 def init_db():
     """Initialize database tables"""
-    Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=get_engine())

@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 import os
 from dotenv import load_dotenv
 
-from utils.mysql_db import engine, Base, init_db
+from utils.mysql_db import Base, get_engine, init_db
 from models_mysql.user import User
 from models_mysql.report import Report
 from models_mysql.task import Task
@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
     try:
         print("[INFO] Initializing MySQL database connection...")
         # Create all tables if they don't exist
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=get_engine())
         print("[SUCCESS] MySQL database connected and tables initialized")
         print("[INFO] Database tables: users, reports, tasks, leaves")
     except Exception as e:
