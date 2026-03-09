@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 import os
 from dotenv import load_dotenv
 
@@ -24,7 +25,19 @@ def get_engine():
         MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "reporting_db")
         
         DATABASE_URL = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
-        _engine = create_engine(DATABASE_URL, echo=True)
+        
+        # Create engine with connection pool settings
+        _engine = create_engine(
+            DATABASE_URL,
+            echo=True,
+            pool_pre_ping=True,  # Enable connection health checks
+            pool_recycle=3600,   # Recycle connections after 1 hour
+            pool_size=10,        # Maximum number of connections
+            max_overflow=20,     # Maximum overflow connections
+            connect_args={
+                "connect_timeout": 10
+            }
+        )
     return _engine
 
 def get_session_local():
