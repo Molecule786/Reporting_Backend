@@ -18,12 +18,18 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
                 detail="Email already registered"
             )
         
+        # Convert role string to enum safely
+        try:
+            user_role = UserRole[user.role] if isinstance(user.role, str) else user.role
+        except KeyError:
+            user_role = UserRole.employee  # Default to employee if invalid role
+        
         # Create new user
         db_user = User(
             full_name=user.full_name,
             email=user.email,
             password=get_password_hash(user.password),
-            role=UserRole(user.role),  # Convert string to enum
+            role=user_role,
             status=UserStatus.active
         )
         

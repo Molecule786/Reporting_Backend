@@ -99,7 +99,7 @@ def get_my_leaves(db: Session = Depends(get_db), current_user: dict = Depends(ge
                 "reason": leave.reason,
                 "start_date": leave.start_date.isoformat() if leave.start_date else None,
                 "end_date": leave.end_date.isoformat() if leave.end_date else None,
-                "status": leave.status.value if hasattr leave.status, 'value') else leave.status,
+                "status": leave.status.value if hasattr(leave.status, 'value') else leave.status,
                 "admin_comment": leave.admin_comment,
                 "created_at": leave.created_at.isoformat() if leave.created_at else None
             })
