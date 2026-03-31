@@ -12,7 +12,15 @@ router = APIRouter()
 @router.post("/leaves")
 def create_leave(leave: LeaveCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
-        user_id = int(current_user.get("user_id"))
+        # Safely convert user_id to int
+
+        user_id_val = current_user.get("user_id")
+
+        if user_id_val is None:
+
+            raise HTTPException(status_code=401, detail="User ID not found in token")
+
+        user_id = int(str(user_id_val))
         user = db.query(User).filter(User.id == user_id).first()
         
         if not user:
@@ -48,7 +56,15 @@ def create_leave(leave: LeaveCreate, db: Session = Depends(get_db), current_user
 @router.get("/leaves")
 def get_leaves(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
-        user_id = int(current_user.get("user_id"))
+        # Safely convert user_id to int
+
+        user_id_val = current_user.get("user_id")
+
+        if user_id_val is None:
+
+            raise HTTPException(status_code=401, detail="User ID not found in token")
+
+        user_id = int(str(user_id_val))
         user_role = current_user.get("role")
         
         if user_role == "admin":
@@ -83,7 +99,15 @@ def get_leaves(db: Session = Depends(get_db), current_user: dict = Depends(get_c
 @router.get("/leaves/my")
 def get_my_leaves(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
-        user_id = int(current_user.get("user_id"))
+        # Safely convert user_id to int
+
+        user_id_val = current_user.get("user_id")
+
+        if user_id_val is None:
+
+            raise HTTPException(status_code=401, detail="User ID not found in token")
+
+        user_id = int(str(user_id_val))
         
         leaves = db.query(Leave).filter(Leave.user_id == user_id).order_by(desc(Leave.created_at)).all()
         
@@ -156,5 +180,7 @@ def get_leave_stats(db: Session = Depends(get_db), current_user: dict = Depends(
                 "rejected": rejected_leaves
             }
         }
+    except HTTPException as he:
+        raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

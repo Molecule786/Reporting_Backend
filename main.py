@@ -11,7 +11,7 @@ from models_mysql.task import Task
 from models_mysql.leave import Leave
 
 # Import MySQL routes
-from routes_mysql import auth, users, reports, tasks, dashboard, leaves, password_reset, upload, export
+from routes_mysql import auth, users, reports, tasks, dashboard, leaves, password_reset, upload, export, chat
 
 load_dotenv()
 
@@ -37,6 +37,8 @@ app = FastAPI(title="Molecule WorkFlow Pro API", lifespan=lifespan, redirect_sla
 
 # CORS middleware - Allow your production domain
 origins = [
+    "https://mediumblue-dogfish-255821.hostingersite.com",
+    "http://mediumblue-dogfish-255821.hostingersite.com", 
     "https://reporting.webconferencesolutions.com",
     "http://localhost:3000",
     "http://localhost:8000",
@@ -61,6 +63,7 @@ app.include_router(leaves.router, prefix="/api", tags=["Leaves"])
 app.include_router(upload.router, prefix="/api", tags=["Upload"])
 app.include_router(password_reset.router, prefix="/api/auth", tags=["Password Reset"])
 app.include_router(export.router, prefix="/api", tags=["Export"])
+app.include_router(chat.router, prefix="/api", tags=["AI Chatbot"])
 
 @app.get("/")
 async def root():

@@ -29,6 +29,8 @@ class Task(Base):
     priority = Column(Enum(TaskPriority), default=TaskPriority.medium)
     status = Column(Enum(TaskStatus), default=TaskStatus.pending)
     due_date = Column(DateTime(timezone=True), nullable=True)
+    attachments = Column(Text, default="[]")  # JSON string of attachment URLs
+    voice_notes = Column(Text, default="[]")  # JSON string of voice note URLs
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -38,6 +40,8 @@ class TaskBase(BaseModel):
     description: str = ""
     priority: str = "medium"
     due_date: Optional[datetime] = None
+    attachments: Optional[list] = []
+    voice_notes: Optional[list] = []
 
 class TaskCreate(TaskBase):
     user_id: int
@@ -48,12 +52,16 @@ class TaskUpdate(BaseModel):
     priority: Optional[str] = None
     status: Optional[str] = None
     due_date: Optional[datetime] = None
+    attachments: Optional[list] = None
+    voice_notes: Optional[list] = None
 
 class TaskResponse(TaskBase):
     id: int
     user_id: int
     assigned_by: Optional[int] = None
     status: str
+    attachments: Optional[list] = []
+    voice_notes: Optional[list] = []
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 

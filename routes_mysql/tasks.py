@@ -5,6 +5,7 @@ from models_mysql.task import Task, TaskCreate, TaskUpdate
 from models_mysql.user import User
 from utils.mysql_db import get_db
 from utils.auth import get_current_user
+import json
 
 router = APIRouter()
 
@@ -19,7 +20,14 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db), current_user: d
                 detail="Not authorized to create tasks"
             )
         
-        admin_id = int(current_user.get("user_id"))
+        # Safely convert user_id to int
+        user_id_val = current_user.get("user_id")
+        if user_id_val is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User ID not found in token"
+            )
+        admin_id = int(str(user_id_val))
         
         db_task = Task(
             user_id=task.user_id,
@@ -28,6 +36,8 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db), current_user: d
             description=task.description,
             priority=task.priority,
             due_date=task.due_date,
+            attachments=json.dumps(task.attachments) if task.attachments else json.dumps([]),
+            voice_notes=json.dumps(task.voice_notes) if task.voice_notes else json.dumps([]),
             status="pending"
         )
         
@@ -53,7 +63,14 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db), current_user: d
 @router.get("")
 def get_tasks(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
-        user_id = int(current_user.get("user_id"))
+        # Safely convert user_id to int
+        user_id_val = current_user.get("user_id")
+        if user_id_val is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User ID not found in token"
+            )
+        user_id = int(str(user_id_val))
         user_role = current_user.get("role")
         
         if user_role == "admin":
@@ -72,6 +89,8 @@ def get_tasks(db: Session = Depends(get_db), current_user: dict = Depends(get_cu
                 "priority": task.priority.value if hasattr(task.priority, 'value') else task.priority,
                 "status": task.status.value if hasattr(task.status, 'value') else task.status,
                 "due_date": task.due_date.isoformat() if task.due_date else None,
+                "attachments": json.loads(task.attachments) if isinstance(task.attachments, str) else task.attachments,
+                "voice_notes": json.loads(task.voice_notes) if isinstance(task.voice_notes, str) else task.voice_notes,
                 "created_at": task.created_at.isoformat() if task.created_at else None
             })
         
@@ -107,6 +126,10 @@ def update_task(task_id: int, task_update: TaskUpdate, db: Session = Depends(get
             task.status = task_update.status
         if task_update.due_date:
             task.due_date = task_update.due_date
+        if task_update.attachments is not None:
+            task.attachments = json.dumps(task_update.attachments)
+        if task_update.voice_notes is not None:
+            task.voice_notes = json.dumps(task_update.voice_notes)
         
         db.commit()
         

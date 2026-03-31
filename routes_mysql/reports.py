@@ -14,7 +14,14 @@ router = APIRouter()
 @router.post("")
 def create_report(report: ReportCreate, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
-        user_id = int(current_user.get("user_id"))
+        # Safely convert user_id to int
+        user_id_val = current_user.get("user_id")
+        if user_id_val is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User ID not found in token"
+            )
+        user_id = int(str(user_id_val))
         
         # Get user info
         user = db.query(User).filter(User.id == user_id).first()
@@ -61,7 +68,15 @@ def create_report(report: ReportCreate, db: Session = Depends(get_db), current_u
 @router.get("")
 def get_reports(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
-        user_id = int(current_user.get("user_id"))
+        # Safely convert user_id to int
+
+        user_id_val = current_user.get("user_id")
+
+        if user_id_val is None:
+
+            raise HTTPException(status_code=401, detail="User ID not found in token")
+
+        user_id = int(str(user_id_val))
         user_role = current_user.get("role")
         
         # Admins see all reports, employees see only their own
@@ -112,7 +127,15 @@ def get_report_by_id(report_id: int, db: Session = Depends(get_db), current_user
             )
         
         # Check authorization
-        user_id = int(current_user.get("user_id"))
+        # Safely convert user_id to int
+
+        user_id_val = current_user.get("user_id")
+
+        if user_id_val is None:
+
+            raise HTTPException(status_code=401, detail="User ID not found in token")
+
+        user_id = int(str(user_id_val))
         user_role = current_user.get("role")
         
         if user_role != "admin" and report.user_id != user_id:
@@ -156,7 +179,15 @@ def update_report(report_id: int, report_update: ReportUpdate, db: Session = Dep
             )
         
         # Check authorization
-        user_id = int(current_user.get("user_id"))
+        # Safely convert user_id to int
+
+        user_id_val = current_user.get("user_id")
+
+        if user_id_val is None:
+
+            raise HTTPException(status_code=401, detail="User ID not found in token")
+
+        user_id = int(str(user_id_val))
         user_role = current_user.get("role")
         
         if user_role != "admin" and report.user_id != user_id:
@@ -203,7 +234,15 @@ def delete_report(report_id: int, db: Session = Depends(get_db), current_user: d
             )
         
         # Only admins or report owner can delete
-        user_id = int(current_user.get("user_id"))
+        # Safely convert user_id to int
+
+        user_id_val = current_user.get("user_id")
+
+        if user_id_val is None:
+
+            raise HTTPException(status_code=401, detail="User ID not found in token")
+
+        user_id = int(str(user_id_val))
         user_role = current_user.get("role")
         
         if user_role != "admin" and report.user_id != user_id:

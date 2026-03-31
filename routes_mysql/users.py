@@ -7,18 +7,32 @@ from typing import List
 
 router = APIRouter()
 
-@router.get("/", response_model=List[UserResponse])
+@router.get("/")
 def get_users(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
         # Only admins can view all users
         if current_user.get("role") != "admin":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not authorized to view users"
+                detail="Admin access required"
             )
         
         users = db.query(User).all()
-        return users
+        user_list = []
+        for user in users:
+            user_list.append({
+                "_id": str(user.id),
+                "full_name": user.full_name,
+                "email": user.email,
+                "role": user.role.value if hasattr(user.role, 'value') else user.role,
+                "status": user.status.value if hasattr(user.status, 'value') else user.status,
+                "created_at": user.created_at.isoformat() if user.created_at else None
+            })
+        
+        return {
+            "success": True,
+            "data": user_list
+        }
     except HTTPException as he:
         raise he
     except Exception as e:
@@ -30,8 +44,13 @@ def get_users(db: Session = Depends(get_db), current_user: dict = Depends(get_cu
 @router.get("/me")
 def get_current_user_profile(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
-        user_id = current_user.get("user_id")
-        user = db.query(User).filter(User.id == int(user_id)).first()
+        user_id_val = current_user.get("user_id")
+        if user_id_val is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User ID not found in token"
+            )
+        user = db.query(User).filter(User.id == int(str(user_id_val))).first()
         
         if not user:
             raise HTTPException(

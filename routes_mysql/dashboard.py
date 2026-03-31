@@ -11,7 +11,15 @@ router = APIRouter()
 @router.get("/stats")
 def get_dashboard_stats(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
-        user_id = int(current_user.get("user_id"))
+        # Safely convert user_id to int
+
+        user_id_val = current_user.get("user_id")
+
+        if user_id_val is None:
+
+            raise HTTPException(status_code=401, detail="User ID not found in token")
+
+        user_id = int(str(user_id_val))
         user_role = current_user.get("role")
         
         if user_role == "admin":
@@ -40,7 +48,15 @@ def get_dashboard_stats(db: Session = Depends(get_db), current_user: dict = Depe
 @router.get("/analytics")
 def get_analytics(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     try:
-        user_id = int(current_user.get("user_id"))
+        # Safely convert user_id to int
+
+        user_id_val = current_user.get("user_id")
+
+        if user_id_val is None:
+
+            raise HTTPException(status_code=401, detail="User ID not found in token")
+
+        user_id = int(str(user_id_val))
         user_role = current_user.get("role")
         
         if user_role == "admin":
